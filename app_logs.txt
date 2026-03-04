@@ -1,0 +1,306 @@
+
+> rest-express@1.0.0 start
+> node dist/index.cjs
+
+/app/node_modules/pg-pool/index.js:45
+    Error.captureStackTrace(err)
+          ^
+System.Management.Automation.RemoteException
+error: relation "scans" does not exist
+    at /app/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+11:27:25 PM [startup] Cleaning up stale scans...
+    at async $h.resetActiveScans (/app/dist/index.cjs:76:110090)
+    at async /app/dist/index.cjs:197:17316 {
+  length: 103,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '8',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1392',
+  routine: 'parserOpenTable'
+}
+System.Management.Automation.RemoteException
+Node.js v20.20.0
+/app/node_modules/pg-pool/index.js:45
+    Error.captureStackTrace(err)
+          ^
+System.Management.Automation.RemoteException
+error: relation "scans" does not exist
+    at /app/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async $h.resetActiveScans (/app/dist/index.cjs:76:110090)
+    at async /app/dist/index.cjs:197:17316 {
+  length: 103,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '8',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+
+> rest-express@1.0.0 start
+> node dist/index.cjs
+
+11:27:27 PM [startup] Cleaning up stale scans...
+
+> rest-express@1.0.0 start
+> node dist/index.cjs
+
+11:27:28 PM [startup] Cleaning up stale scans...
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1392',
+  routine: 'parserOpenTable'
+}
+System.Management.Automation.RemoteException
+Node.js v20.20.0
+/app/node_modules/pg-pool/index.js:45
+    Error.captureStackTrace(err)
+          ^
+System.Management.Automation.RemoteException
+error: relation "scans" does not exist
+    at /app/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async $h.resetActiveScans (/app/dist/index.cjs:76:110090)
+    at async /app/dist/index.cjs:197:17316 {
+  length: 103,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '8',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+
+  file: 'parse_relation.c',
+  line: '1392',
+  routine: 'parserOpenTable'
+}
+System.Management.Automation.RemoteException
+Node.js v20.20.0
+/app/node_modules/pg-pool/index.js:45
+    Error.captureStackTrace(err)
+          ^
+System.Management.Automation.RemoteException
+error: relation "scans" does not exist
+    at /app/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async $h.resetActiveScans (/app/dist/index.cjs:76:110090)
+    at async /app/dist/index.cjs:197:17316 {
+  length: 103,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '8',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1392',
+  routine: 'parserOpenTable'
+}
+> rest-express@1.0.0 start
+> node dist/index.cjs
+
+11:27:30 PM [startup] Cleaning up stale scans...
+
+> rest-express@1.0.0 start
+> node dist/index.cjs
+
+11:27:31 PM [startup] Cleaning up stale scans...
+
+> rest-express@1.0.0 start
+> node dist/index.cjs
+
+11:27:34 PM [startup] Cleaning up stale scans...
+
+> rest-express@1.0.0 start
+> node dist/index.cjs
+
+11:27:39 PM [startup] Cleaning up stale scans...
+
+> rest-express@1.0.0 start
+> node dist/index.cjs
+
+11:27:46 PM [startup] Cleaning up stale scans...
+
+> rest-express@1.0.0 start
+> node dist/index.cjs
+
+System.Management.Automation.RemoteException
+Node.js v20.20.0
+/app/node_modules/pg-pool/index.js:45
+    Error.captureStackTrace(err)
+          ^
+System.Management.Automation.RemoteException
+error: relation "scans" does not exist
+    at /app/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async $h.resetActiveScans (/app/dist/index.cjs:76:110090)
+    at async /app/dist/index.cjs:197:17316 {
+  length: 103,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '8',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1392',
+  routine: 'parserOpenTable'
+}
+System.Management.Automation.RemoteException
+Node.js v20.20.0
+/app/node_modules/pg-pool/index.js:45
+    Error.captureStackTrace(err)
+          ^
+System.Management.Automation.RemoteException
+error: relation "scans" does not exist
+    at /app/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async $h.resetActiveScans (/app/dist/index.cjs:76:110090)
+    at async /app/dist/index.cjs:197:17316 {
+  length: 103,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '8',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1392',
+  routine: 'parserOpenTable'
+}
+System.Management.Automation.RemoteException
+Node.js v20.20.0
+11:28:00 PM [startup] Cleaning up stale scans...
+/app/node_modules/pg-pool/index.js:45
+    Error.captureStackTrace(err)
+          ^
+System.Management.Automation.RemoteException
+error: relation "scans" does not exist
+    at /app/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async $h.resetActiveScans (/app/dist/index.cjs:76:110090)
+    at async /app/dist/index.cjs:197:17316 {
+  length: 103,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '8',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1392',
+  routine: 'parserOpenTable'
+}
+System.Management.Automation.RemoteException
+Node.js v20.20.0
+/app/node_modules/pg-pool/index.js:45
+    Error.captureStackTrace(err)
+          ^
+System.Management.Automation.RemoteException
+error: relation "scans" does not exist
+    at /app/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async $h.resetActiveScans (/app/dist/index.cjs:76:110090)
+    at async /app/dist/index.cjs:197:17316 {
+  length: 103,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '8',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1392',
+  routine: 'parserOpenTable'
+}
+System.Management.Automation.RemoteException
+Node.js v20.20.0
+/app/node_modules/pg-pool/index.js:45
+    Error.captureStackTrace(err)
+          ^
+System.Management.Automation.RemoteException
+error: relation "scans" does not exist
+    at /app/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async $h.resetActiveScans (/app/dist/index.cjs:76:110090)
+    at async /app/dist/index.cjs:197:17316 {
+  length: 103,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '8',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1392',
+  routine: 'parserOpenTable'
+}
+System.Management.Automation.RemoteException
+Node.js v20.20.0

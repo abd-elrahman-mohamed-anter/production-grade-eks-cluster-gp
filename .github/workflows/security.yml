@@ -1,0 +1,64 @@
+name: Security Suite
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 0 * * 0' # Weekly scan
+
+jobs:
+  security-checks:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run ESLint Security Scan (SAST)
+      run: npm run lint:security
+      continue-on-error: true
+
+    - name: Create reports directory
+      run: mkdir -p reports
+
+    - name: OWASP Dependency Check
+      uses: dependency-check/Dependency-Check_Action@main
+      with:
+        project: 'GradProject'
+        path: '.'
+        format: 'HTML'
+        out: 'reports'
+        args: >
+          --failOnCVSS 7
+          --enableRetired
+      continue-on-error: true
+
+    - name: Build and Start Services for DAST
+      run: docker-compose up -d app db zap
+
+    - name: Wait for services
+      run: sleep 60
+
+    - name: Run Nikto Scan
+      run: |
+        docker-compose run --rm nikto
+      continue-on-error: true
+
+    # Note: Full ZAP scan is complex to orchestrate in CI without a specific target URL reachable from the ZAP container
+    # Assuming the app is reachable as 'app' in the docker network.
+    
+    - name: Archive Security Reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: reports/
