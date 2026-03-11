@@ -19,6 +19,7 @@ export default defineConfig({
         ]
       : []),
   ],
+
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
@@ -26,16 +27,21 @@ export default defineConfig({
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
     },
   },
+
   root: path.resolve(import.meta.dirname, "client"),
+
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir: path.resolve(import.meta.dirname, "dist"), // تم تعديل المسار هنا
     emptyOutDir: true,
     chunkSizeWarningLimit: 1500,
   },
+
   server: {
     fs: {
       strict: true,
       deny: ["**/.*"],
     },
   },
+
+  base: "/", // مهم عشان تحميل assets صح
 });
