@@ -127,11 +127,13 @@ TLS is the top priority fix — in production it would be terminated at the load
 
 CloudWatch Container Insights set up via Terraform — `amazon-cloudwatch-observability` addon on the cluster, collecting CPU/memory, pod restarts, network I/O, and container logs in real time.
 
+![CloudWatch Container Insights — cluster overview](Screens/cloudwatchdash.png)
+
 ![CloudWatch Namespace metrics — zap-cluster](Screens/nscldwtch.png)
 
 ![kubectl get all -n amazon-cloudwatch](Screens/podswatch.png)
 
-Current status: 6 pods running in `zap-project` · CPU ~49.8% · Memory ~52.3% · No alarms detected across all namespaces, nodes, services, workloads, and pods.
+Current status: 15 pods · 2 nodes available · CPU 39% · Memory 42% · No alarms detected across cluster, nodes, namespaces, services, workloads, and pods.
 
 ---
 
@@ -177,6 +179,18 @@ kubectl apply -f app-service.yaml
 kubectl get all -n zap-project
 kubectl get all -n amazon-cloudwatch
 ```
+
+---
+
+## Future Improvements
+
+- [ ] HTTPS via AWS Certificate Manager on the load balancer
+- [ ] CI/CD pipeline with GitHub Actions
+- [ ] Automated ZAP scans on every release
+- [ ] Cluster Autoscaler for dynamic node scaling
+- [ ] WAF in front of the load balancer
+- [ ] Migrate PostgreSQL to Amazon RDS (managed backups + Multi-AZ)
+- [ ] IRSA (IAM Roles for Service Accounts) for pod-level AWS permissions
 
 ---
 
