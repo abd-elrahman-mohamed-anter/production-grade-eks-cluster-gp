@@ -7,17 +7,15 @@
 
 Production-grade AWS infrastructure built with Terraform and Kubernetes (EKS). Everything is defined as code and provisioned with a single `terraform apply` — no clicking through consoles, fully reproducible.
 
-The setup runs across two Availability Zones inside a private/public subnet split. Worker nodes are never exposed to the internet — only the ALB is. Three workloads run inside the cluster: the backend app, PostgreSQL on EBS persistent storage, and OWASP ZAP for dynamic security testing. All monitored via CloudWatch Container Insights.
+The setup runs across two Availability Zones inside a private/public subnet split. Worker nodes are never exposed to the internet — only the LoadBalancer service is. Three workloads run inside the cluster: the backend app, PostgreSQL on EBS persistent storage, and OWASP ZAP for dynamic security testing. All monitored via CloudWatch Container Insights.
 
 ---
 
 ## Architecture
 
-> 📸 *Cloud Architecture Diagram*
+![Cloud Architecture Diagram](Screens/abdooff_drawio.png)
 
-> 📸 *Kubernetes Cluster Architecture*
-
-VPC (10.0.0.0/16) across two AZs, each with a public and private subnet. ALB in public subnets forwards to worker nodes via NodePort. Pods communicate internally over ClusterIP — the database and ZAP are never reachable from outside the cluster.
+VPC (10.0.0.0/16) across two AZs, each with a public and private subnet. An AWS LoadBalancer provisioned by Kubernetes exposes the app externally. Pods communicate internally over ClusterIP — PostgreSQL and ZAP are never reachable from outside the cluster.
 
 ---
 
@@ -28,11 +26,11 @@ VPC (10.0.0.0/16) across two AZs, each with a public and private subnet. ALB in 
 | Component | Value |
 |---|---|
 | VPC | `10.0.0.0/16` |
-| Public Subnets | `10.0.1.0/24` (AZ-a) · `10.0.2.0/24` (AZ-b) |
-| Private Subnets | `10.0.3.0/24` (AZ-a) · `10.0.4.0/24` (AZ-b) |
+| Public Subnets | `10.0.1.0/24` (AZ-a) · `10.0.3.0/24` (AZ-b) |
+| Private Subnets | `10.0.2.0/24` (AZ-a) · `10.0.4.0/24` (AZ-b) |
 | Internet Gateway | Inbound internet access |
-| NAT Gateway | One per AZ — outbound-only for private nodes |
-| Load Balancer | ALB in public subnets — sole external entry point |
+| NAT Gateway | Outbound-only for private nodes |
+| Load Balancer | AWS ELB provisioned by Kubernetes — sole external entry point |
 | Security Group | Ports 80, 443 inbound |
 
 ### EKS Cluster
@@ -45,8 +43,6 @@ VPC (10.0.0.0/16) across two AZs, each with a public and private subnet. ALB in 
 | Node Count | Min: 1 · Desired: 2 · Max: 3 |
 | Node Subnets | Private (AZ-a, AZ-b) |
 | Endpoint Access | Public (kubectl) + Private (internal) |
-
-> 📸 *EKS Console — zap-cluster active*
 
 ### Storage & IAM
 
@@ -82,30 +78,30 @@ All workloads run under the `zap-project` namespace.
 | Workload | Image | Port | Controller |
 |---|---|---|---|
 | Backend App | `abdoomohamed/final-v1-app` | 5000 | Deployment |
-| PostgreSQL | `postgres:15-alpine` | 5432 | StatefulSet |
+| PostgreSQL | `postgres:15-alpine` | 5432 | Deployment |
 | OWASP ZAP | `ghcr.io/zaproxy/zaproxy:latest` | 8080 | Deployment |
 
-The app is exposed via NodePort through the ALB. PostgreSQL and ZAP are ClusterIP only — internal to the cluster.
+The app is exposed via a Kubernetes **LoadBalancer** service which provisions an AWS ELB automatically. PostgreSQL and ZAP are ClusterIP only — internal to the cluster.
 
-| Service | Type | Port | NodePort |
+| Service | Type | Port | External |
 |---|---|---|---|
-| `zap-app-service` | NodePort | 5000 | 30080 |
+| `zap-app-service` | LoadBalancer | 80 · 32230 | `a4237214f212646728e8307b3acaa232-530901322.us-east-1.elb.amazonaws.com` |
 | `postgres` | ClusterIP | 5432 | — |
 | `zap` | ClusterIP | 8080 | — |
 
-> 📸 *kubectl get all -n zap-project*
+![kubectl get all -n zap-project](Screens/kubectl-get-all.png)
 
 ---
 
 ## Traffic Flow
 
 ```
-User → IGW → ALB (port 80) → NodePort 30080 → App Pod (port 5000)
-                                                     ├── PostgreSQL (port 5432)
-                                                     └── OWASP ZAP (port 8080)
+User → IGW → AWS ELB (port 80) → App Pod (port 5000)
+                                       ├── PostgreSQL (port 5432)
+                                       └── OWASP ZAP (port 8080)
 ```
 
-The ALB spans both AZs — if one goes down, traffic automatically shifts to the other with no intervention needed.
+The LoadBalancer spans both AZs — if one goes down, traffic automatically shifts to the other with no intervention needed.
 
 ---
 
@@ -123,7 +119,7 @@ ZAP runs inside the cluster, called by the backend via internal DNS (`http://zap
 | No Content Security Policy | 🟡 Medium |
 | Server version disclosure | 🟢 Low |
 
-TLS is the top priority fix — in production it would be terminated at the ALB using AWS Certificate Manager (ACM).
+TLS is the top priority fix — in production it would be terminated at the load balancer using AWS Certificate Manager (ACM).
 
 ---
 
@@ -131,34 +127,32 @@ TLS is the top priority fix — in production it would be terminated at the ALB 
 
 CloudWatch Container Insights set up via Terraform — `amazon-cloudwatch-observability` addon on the cluster, collecting CPU/memory, pod restarts, network I/O, and container logs in real time.
 
-> 📸 *CloudWatch Container Insights dashboard*
+![CloudWatch Namespace metrics — zap-cluster](Screens/nscldwtch.png)
 
-> 📸 *Namespace-level metrics — zap-cluster*
+![kubectl get all -n amazon-cloudwatch](Screens/podswatch.png)
 
-Current status: 15 pods running · CPU 39% · Memory 42% · No alarms.
+Current status: 6 pods running in `zap-project` · CPU ~49.8% · Memory ~52.3% · No alarms detected across all namespaces, nodes, services, workloads, and pods.
 
 ---
 
 ## Terraform
 
 ```
-terraform/
+tf/
 ├── provider.tf    # AWS provider + version pin
 ├── variables.tf   # Cluster name, region, instance type, node count
-├── network.tf     # VPC, subnets, IGW, NAT Gateways, route tables, ALB
-├── eks.tf         # EKS cluster, node groups, IAM roles, EBS CSI addon
-└── outputs.tf     # ALB DNS, cluster endpoint, kubectl command
+├── network.tf     # VPC, subnets, IGW, NAT Gateway, route tables, security group
+├── eks.tf         # EKS cluster, node group, IAM roles, EBS CSI + CloudWatch addons
+└── outputs.tf     # Cluster endpoint, subnet IDs, kubectl command
 ```
 
-Terraform handles the dependency ordering automatically — NAT Gateways before route tables, cluster before node groups, node groups before the EBS CSI addon.
+Terraform handles the dependency ordering automatically — NAT Gateway before route tables, cluster before node group, node group before addons.
 
 ```bash
 terraform init
 terraform plan
 terraform apply
 ```
-
-> 📸 *terraform apply output — 18 resources added*
 
 ---
 
@@ -171,13 +165,7 @@ terraform init && terraform plan && terraform apply
 # 2. Connect kubectl
 aws eks update-kubeconfig --region us-east-1 --name zap-cluster
 
-# 3. Install EBS CSI Driver
-aws eks create-addon \
-  --cluster-name zap-cluster \
-  --addon-name aws-ebs-csi-driver \
-  --region us-east-1
-
-# 4. Deploy workloads
+# 3. Deploy workloads
 kubectl apply -f namespace.yaml
 kubectl apply -f storagegb3.yaml
 kubectl apply -f postgres.yaml
@@ -187,7 +175,21 @@ kubectl apply -f app-service.yaml
 
 # Verify
 kubectl get all -n zap-project
-terraform output alb_dns_name
+kubectl get all -n amazon-cloudwatch
 ```
+
+---
+
+## Future Improvements
+
+- [ ] HTTPS via AWS Certificate Manager on the load balancer
+- [ ] CI/CD pipeline with GitHub Actions
+- [ ] Automated ZAP scans on every release
+- [ ] Cluster Autoscaler for dynamic node scaling
+- [ ] WAF in front of the load balancer
+- [ ] Migrate PostgreSQL to Amazon RDS (managed backups + Multi-AZ)
+- [ ] IRSA (IAM Roles for Service Accounts) for pod-level AWS permissions
+
+---
 
 *Abdelrahman Mohamed — Graduation Project 2026*
