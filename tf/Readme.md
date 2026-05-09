@@ -152,29 +152,21 @@ Current status: 15 pods · 2 nodes available · CPU 39% · Memory 42% · No alar
 
 ## Best Practices Applied
 
-**Infrastructure as Code** — every resource is defined in Terraform. Nothing was created manually through the console, which means the entire setup is version-controlled, reviewable, and can be recreated identically from scratch.
-
-**Private subnets for worker nodes** — nodes have no public IP and are unreachable from the internet. The only inbound path is through the LoadBalancer.
-
-**NAT Gateway for outbound-only access** — private nodes can pull images and reach AWS APIs, but nothing can reach them inbound.
-
-**Least-privilege IAM** — three separate IAM roles, each with only the policies it needs: `eks-cluster-role` for the control plane, `node-group-role` for worker nodes, and `ebs-csi-role` for storage provisioning. No role has more permissions than required.
-
-**EBS encryption at rest** — the StorageClass is configured with `encrypted: "true"`, so all PostgreSQL data is encrypted on disk automatically.
-
-**`reclaimPolicy: Retain`** — if a PVC is deleted, the underlying EBS volume is kept. Data isn't lost by accident; manual cleanup is required, which is the safer default for a database.
-
-**Resource requests and limits on every pod** — PostgreSQL and ZAP both have explicit CPU and memory requests and limits. This prevents any single pod from starving the node and keeps the cluster stable.
-
-**Liveness and readiness probes** — PostgreSQL has both configured. Kubernetes won't route traffic to the pod until it's actually ready, and will restart it automatically if it becomes unhealthy.
-
-**Namespace isolation** — all workloads run under `zap-project`, separated from system namespaces. Makes it easier to manage access, apply policies, and clean up.
-
-**Security scanner inside the cluster** — ZAP runs as a pod and is called via internal DNS. No external port is opened for scanning, keeping the attack surface minimal.
-
-**Observability from day one** — CloudWatch Container Insights is provisioned by Terraform alongside the cluster, not added later. Metrics and logs are available from the first deployment.
-
-**Explicit `depends_on` in Terraform** — critical resources like the CloudWatch addon and EBS CSI Driver explicitly declare their dependencies, preventing race conditions during provisioning.
+## Best Practices Applied
+ 
+| Practice | Details |
+|---|---|
+| IaC | All resources in Terraform — nothing created manually |
+| Network isolation | Worker nodes in private subnets, NAT for outbound only |
+| Least-privilege IAM | 3 roles, each scoped to what it needs |
+| EBS encryption | `encrypted: "true"` on StorageClass |
+| Data safety | `reclaimPolicy: Retain` — no accidental data loss |
+| Resource limits | CPU + memory requests/limits on every pod |
+| Health checks | Liveness + readiness probes on PostgreSQL |
+| Namespace isolation | All workloads under `zap-project` |
+| Internal scanning | ZAP called via internal DNS, no external port opened |
+| Observability | CloudWatch provisioned with the cluster, not after |
+| Dependency ordering | Explicit `depends_on` to avoid race conditions |
 
 ---
 
