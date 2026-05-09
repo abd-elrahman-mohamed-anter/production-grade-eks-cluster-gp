@@ -96,6 +96,10 @@ The app is exposed via a Kubernetes **LoadBalancer** service which provisions an
 
 ![kubectl get all -n zap-project](Screens/kubectl-get-all.png)
 
+The app is accessible via the ELB DNS — below is the web vulnerability scanner running live on the cluster.
+
+![App running on ELB](Screens/app.png)
+
 ---
 
 ## Traffic Flow
