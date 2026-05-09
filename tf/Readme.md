@@ -5,11 +5,9 @@
 
 ## Overview
 
-This project provisions a production-grade cloud infrastructure on AWS using Terraform as the IaC engine and Kubernetes (EKS) as the container orchestration layer. The goal was to build something fully automated — every AWS resource is defined in code and spun up with a single `terraform apply`, making the whole setup reproducible and version-controlled.
+Production-grade AWS infrastructure built with Terraform and Kubernetes (EKS). Everything is defined as code and provisioned with a single `terraform apply` — no clicking through consoles, fully reproducible.
 
-The architecture runs inside a single VPC across two Availability Zones for high availability. Worker nodes live in private subnets and are never directly exposed to the internet. An Application Load Balancer in the public subnet is the only external entry point. Each AZ has its own NAT Gateway so outbound traffic from private nodes never crosses AZ boundaries, keeping latency low and avoiding unnecessary data transfer costs.
-
-On top of the infrastructure, three workloads run inside the EKS cluster — the backend app, a PostgreSQL database backed by EBS persistent storage, and an OWASP ZAP instance for dynamic security testing. Everything is monitored through CloudWatch Container Insights.
+The setup runs across two Availability Zones inside a private/public subnet split. Worker nodes are never exposed to the internet — only the ALB is. Three workloads run inside the cluster: the backend app, PostgreSQL on EBS persistent storage, and OWASP ZAP for dynamic security testing. All monitored via CloudWatch Container Insights.
 
 ---
 
@@ -19,7 +17,7 @@ On top of the infrastructure, three workloads run inside the EKS cluster — the
 
 > 📸 *Kubernetes Cluster Architecture*
 
-The VPC (10.0.0.0/16) spans two AZs, each with a public and private subnet. The ALB sits in the public subnets and forwards traffic to the worker nodes in the private subnets via NodePort. Inside the cluster, pods communicate over Kubernetes-internal ClusterIP services — the database and ZAP scanner are never reachable from outside the cluster.
+VPC (10.0.0.0/16) across two AZs, each with a public and private subnet. ALB in public subnets forwards to worker nodes via NodePort. Pods communicate internally over ClusterIP — the database and ZAP are never reachable from outside the cluster.
 
 ---
 
@@ -73,7 +71,7 @@ volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true
 ```
 
-Three IAM roles are created — `eks-cluster-role` for the control plane, `node-group-role` for worker nodes (with ECR read access and VPC CNI permissions), and `ebs-csi-role` for EBS volume provisioning.
+Three IAM roles: `eks-cluster-role` (control plane), `node-group-role` (worker nodes — ECR read + VPC CNI), `ebs-csi-role` (EBS provisioning).
 
 ---
 
@@ -113,7 +111,7 @@ The ALB spans both AZs — if one goes down, traffic automatically shifts to the
 
 ## Security Testing — OWASP ZAP
 
-ZAP runs inside the cluster and is called by the backend via internal DNS (`http://zap:8080`). Nothing is exposed externally for scanning. It runs passive scans (missing headers, insecure cookies), active scans (SQLi, XSS, command injection payloads), and a spider to discover all endpoints first.
+ZAP runs inside the cluster, called by the backend via internal DNS (`http://zap:8080`) — nothing exposed externally. Runs passive scans (missing headers, insecure cookies), active scans (SQLi, XSS, command injection), and a spider crawl to map all endpoints first.
 
 **Findings from the current deployment:**
 
@@ -131,7 +129,7 @@ TLS is the top priority fix — in production it would be terminated at the ALB 
 
 ## Monitoring — CloudWatch
 
-CloudWatch Container Insights is set up at the infra level via Terraform. The `amazon-cloudwatch-observability` addon runs on the cluster and collects CPU/memory metrics, pod restarts, network I/O, and container logs from every workload in real time.
+CloudWatch Container Insights set up via Terraform — `amazon-cloudwatch-observability` addon on the cluster, collecting CPU/memory, pod restarts, network I/O, and container logs in real time.
 
 > 📸 *CloudWatch Container Insights dashboard*
 
@@ -152,7 +150,7 @@ terraform/
 └── outputs.tf     # ALB DNS, cluster endpoint, kubectl command
 ```
 
-Terraform builds a dependency graph and provisions everything in the right order automatically — NAT Gateways before route tables, EKS cluster before node groups, node groups before the EBS CSI addon.
+Terraform handles the dependency ordering automatically — NAT Gateways before route tables, cluster before node groups, node groups before the EBS CSI addon.
 
 ```bash
 terraform init
@@ -191,19 +189,5 @@ kubectl apply -f app-service.yaml
 kubectl get all -n zap-project
 terraform output alb_dns_name
 ```
-
----
-
-## Future Improvements
-
-- [ ] HTTPS via AWS Certificate Manager on the load balancer
-- [ ] CI/CD pipeline with GitHub Actions
-- [ ] Automated ZAP scans on every release
-- [ ] Cluster Autoscaler for dynamic node scaling
-- [ ] WAF in front of the load balancer
-- [ ] Migrate PostgreSQL to Amazon RDS (managed backups + Multi-AZ)
-- [ ] IRSA (IAM Roles for Service Accounts) for pod-level AWS permissions
-
----
 
 *Abdelrahman Mohamed — Graduation Project 2026*
