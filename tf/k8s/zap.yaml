@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zap
+  namespace: zap-project
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zap
+  template:
+    metadata:
+      labels:
+        app: zap
+    spec:
+      containers:
+        - name: zap
+          image: ghcr.io/zaproxy/zaproxy:latest
+
+          args:
+            - zap.sh
+            - -daemon
+            - -host
+            - 0.0.0.0
+            - -port
+            - "8080"
+
+            # API settings
+            - -config
+            - api.disablekey=true
+            - -config
+            - api.addrs.addr.name=.*
+            - -config
+            - api.addrs.addr.regex=true
+
+            # Performance tuning
+            - -config
+            - scanner.threadPerHost=2
+
+            # 🔥 حل مشكلة الكراش
+            - -config
+            - connection.responseBodySize=0
+
+            # 🔥 منع الملفات الكبيرة
+            - -config
+            - globalexcludeurl.url_list.url(0).regex=.*\.(onnx|zip|mp4|pdf|jpg|png).*
+            - -config
+            - globalexcludeurl.url_list.url(0).description=exclude large files
+
+            # (اختياري) تسريع السبيدر
+            - -config
+            - spider.maxDuration=5
+
+          ports:
+            - containerPort: 8080
+
+          resources:
+            requests:
+              cpu: "300m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "3Gi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zap
+  namespace: zap-project
+spec:
+  selector:
+    app: zap
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: ClusterIP

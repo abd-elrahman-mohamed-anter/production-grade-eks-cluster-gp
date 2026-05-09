@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zap-app
+  namespace: zap-project
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: zap-app
+  template:
+    metadata:
+      labels:
+        app: zap-app
+    spec:
+      containers:
+        - name: zap-app
+          image: abdoomohamed/final-v1-app
+          ports:
+            - containerPort: 5000
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: "5000"
+            - name: DB_HOST
+              value: postgres
+            - name: ZAP_API_URL
+              value: http://zap:8080
