@@ -180,16 +180,4 @@ kubectl get all -n amazon-cloudwatch
 
 ---
 
-## Future Improvements
-
-- [ ] HTTPS via AWS Certificate Manager on the load balancer
-- [ ] CI/CD pipeline with GitHub Actions
-- [ ] Automated ZAP scans on every release
-- [ ] Cluster Autoscaler for dynamic node scaling
-- [ ] WAF in front of the load balancer
-- [ ] Migrate PostgreSQL to Amazon RDS (managed backups + Multi-AZ)
-- [ ] IRSA (IAM Roles for Service Accounts) for pod-level AWS permissions
-
----
-
 *Abdelrahman Mohamed — Graduation Project 2026*
