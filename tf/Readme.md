@@ -46,12 +46,11 @@ VPC (10.0.0.0/16) across two AZs, each with a public and private subnet. An AWS 
 
 ### Storage & IAM
 
-Stateful workloads use PVCs backed by EBS gp3 volumes, automatically provisioned by the EBS CSI Driver. Data persists across pod restarts and node failures.
+PostgreSQL uses a PVC backed by an EBS gp3 volume, automatically provisioned by the EBS CSI Driver. Data persists across pod restarts and node failures.
 
 | Workload | Size | Access Mode |
 |---|---|---|
 | PostgreSQL | 10Gi | ReadWriteOnce |
-| ZAP Reports | 5Gi | ReadWriteOnce |
 
 ```yaml
 apiVersion: storage.k8s.io/v1
@@ -141,11 +140,18 @@ Current status: 15 pods · 2 nodes available · CPU 39% · Memory 42% · No alar
 
 ```
 tf/
-├── provider.tf    # AWS provider + version pin
-├── variables.tf   # Cluster name, region, instance type, node count
-├── network.tf     # VPC, subnets, IGW, NAT Gateway, route tables, security group
-├── eks.tf         # EKS cluster, node group, IAM roles, EBS CSI + CloudWatch addons
-└── outputs.tf     # Cluster endpoint, subnet IDs, kubectl command
+├── provider.tf       # AWS provider + version pin
+├── variables.tf      # Cluster name, region, instance type, node count
+├── network.tf        # VPC, subnets, IGW, NAT Gateway, route tables, security group
+├── eks.tf            # EKS cluster, node group, IAM roles, EBS CSI + CloudWatch addons
+├── outputs.tf        # Cluster endpoint, subnet IDs, kubectl command
+└── k8s/
+    ├── namespace.yaml
+    ├── storagegb3.yaml
+    ├── postgres.yaml
+    ├── zap.yaml
+    ├── app.yaml
+    └── app-service.yaml
 ```
 
 Terraform handles the dependency ordering automatically — NAT Gateway before route tables, cluster before node group, node group before addons.
@@ -168,12 +174,12 @@ terraform init && terraform plan && terraform apply
 aws eks update-kubeconfig --region us-east-1 --name zap-cluster
 
 # 3. Deploy workloads
-kubectl apply -f namespace.yaml
-kubectl apply -f storagegb3.yaml
-kubectl apply -f postgres.yaml
-kubectl apply -f zap.yaml
-kubectl apply -f app.yaml
-kubectl apply -f app-service.yaml
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/storagegb3.yaml
+kubectl apply -f k8s/postgres.yaml
+kubectl apply -f k8s/zap.yaml
+kubectl apply -f k8s/app.yaml
+kubectl apply -f k8s/app-service.yaml
 
 # Verify
 kubectl get all -n zap-project
