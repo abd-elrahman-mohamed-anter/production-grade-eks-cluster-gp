@@ -13,7 +13,7 @@ The setup runs across two Availability Zones inside a private/public subnet spli
 
 ## Architecture
 
-![Cloud Architecture Diagram](Screens/abdooff_drawio.png)
+![Cloud Architecture Diagram](Screens/abdooff.drawio.png)
 
 VPC (10.0.0.0/16) across two AZs, each with a public and private subnet. An AWS LoadBalancer provisioned by Kubernetes exposes the app externally. Pods communicate internally over ClusterIP — PostgreSQL and ZAP are never reachable from outside the cluster.
 
