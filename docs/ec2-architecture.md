@@ -137,7 +137,7 @@ Each instance hosts the complete Dockerized application stack.
 
 ### EC2 Instances
 
-![EC2 Instances](screen/instances.jpg)
+![EC2 Instances](screen/inctances.jpg)
 
 ---
 
