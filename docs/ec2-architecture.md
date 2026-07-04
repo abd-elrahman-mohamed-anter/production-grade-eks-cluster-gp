@@ -469,7 +469,7 @@ This became the second implementation of the project.
 
 ➡️ **Continue to Approach 2**
 
-[View Kubernetes Deployment](../tf/README.md)
+[View Kubernetes Deployment](../tf/Readme.md)
 
 ---
 
