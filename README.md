@@ -11,7 +11,7 @@
 | Architecture | Documentation |
 |-------------|-------------|
 | 🚀 **Approach 1 — EC2-Based Containerized Architecture** | **[OPEN DOCUMENTATION](docs/ec2-architecture.md)** |
-| ☸️ **Approach 2 — Cloud-Native Kubernetes Architecture** | **[OPEN DOCUMENTATION](tf/README.md)** |
+| ☸️ **Approach 2 — Cloud-Native Kubernetes Architecture** | **[OPEN DOCUMENTATION](tf/Readme.md)** |
 
 ---
 
