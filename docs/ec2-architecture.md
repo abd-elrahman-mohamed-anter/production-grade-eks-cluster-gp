@@ -6,7 +6,7 @@
 
 ## Architecture
 
-![EC2 Architecture](Screens/ec2-gp.png)
+![EC2 Architecture](screen/ec2-gp.png)
 
 This was the first implementation of the graduation project before migrating to Kubernetes.
 
@@ -116,7 +116,7 @@ Responsibilities:
 
 ### Resource Map
 
-![ALB Resource Map](Screens/alb-resourcemap.jpg)
+![ALB Resource Map](screen/alb-resourcemap.jpg)
 
 ---
 
@@ -137,7 +137,7 @@ Each instance hosts the complete Dockerized application stack.
 
 ### EC2 Instances
 
-![EC2 Instances](Screens/instances.jpg)
+![EC2 Instances](screen/instances.jpg)
 
 ---
 
@@ -163,7 +163,7 @@ Benefits:
 
 ### Auto Scaling Dashboard
 
-![Auto Scaling Group](Screens/project-autoscale.jpg)
+![Auto Scaling Group](screen/project-autoscale.jpg)
 
 ---
 
