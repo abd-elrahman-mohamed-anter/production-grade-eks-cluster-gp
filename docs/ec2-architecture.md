@@ -8,7 +8,7 @@
 
 > Add architecture diagram here
 
-![Architecture Diagram](../Screens/ec2-architecture.png)
+![Architecture Diagram](ec2-gp.png)
 
 ---
 
