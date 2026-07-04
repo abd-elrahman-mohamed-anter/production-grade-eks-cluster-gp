@@ -6,7 +6,7 @@
 
 ## Architecture
 
-![EC2 Architecture](../screen/ec2-gp.png)
+![EC2 Architecture](screen/ec2-gp.png)
 ---
 
 ## Overview
