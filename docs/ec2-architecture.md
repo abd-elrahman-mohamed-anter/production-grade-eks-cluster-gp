@@ -6,9 +6,7 @@
 
 ## Architecture
 
-> Add architecture diagram here
-
-![EC2 Architecture](../Screens/ec2-gp.png)
+![EC2 Architecture](../screen/ec2-gp.png)
 ---
 
 ## Overview
