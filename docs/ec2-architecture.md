@@ -6,81 +6,204 @@
 
 ## Architecture
 
-![EC2 Architecture](screen/ec2-gp.png)
+![EC2 Architecture](Screens/ec2-gp.png)
+
+This was the first implementation of the graduation project before migrating to Kubernetes.
+
+The platform was designed and deployed on AWS using EC2 instances and Docker Compose. The goal was to create a secure and scalable environment for automated web vulnerability assessment while following AWS networking and infrastructure best practices.
+
+The deployment spans two Availability Zones and separates public-facing resources from internal workloads using public and private subnets.
+
 ---
 
 ## Overview
 
-Before moving to Kubernetes, I first built and deployed the platform on AWS using EC2 and Docker Compose.
+The platform combines multiple services working together to provide automated vulnerability scanning and reporting.
 
-The goal was to create a complete environment for automated web vulnerability assessment while keeping the architecture secure, scalable, and easy to manage.
+### Core Components
 
-The platform combines multiple security tools and services into a single deployment:
-
+- Nginx Reverse Proxy
 - Backend Application
 - PostgreSQL Database
 - OWASP ZAP
 - OWASP Dependency Check
 - Nikto
-- Nginx Reverse Proxy
+- Amazon CloudWatch
 
-Everything runs as Docker containers on EC2 instances inside private subnets, while an AWS Application Load Balancer handles incoming traffic.
+The environment is deployed behind an Application Load Balancer while the application workloads remain isolated inside private subnets.
 
 ---
 
-## Infrastructure
+# Infrastructure Design
 
-The infrastructure is deployed inside a dedicated AWS VPC using public and private subnets.
+The infrastructure is built inside a dedicated Amazon VPC.
 
-Only the Application Load Balancer is publicly accessible. Application workloads remain isolated inside private subnets and use a NAT Gateway whenever outbound internet access is required.
+The design follows a multi-tier architecture:
 
-### Components
+```text
+Internet
+   │
+   ▼
+Internet Gateway
+   │
+   ▼
+Application Load Balancer
+   │
+   ▼
+Private EC2 Instances
+   │
+   ├── Nginx
+   ├── Backend Application
+   ├── PostgreSQL
+   ├── OWASP ZAP
+   ├── Dependency Check
+   └── Nikto
+```
+
+Key design goals:
+
+- High Availability
+- Scalability
+- Security
+- Observability
+- Containerized Deployment
+
+---
+
+# Network Architecture
+
+The infrastructure is distributed across two Availability Zones.
+
+### Networking Components
 
 | Component | Purpose |
 |------------|------------|
-| VPC | Network isolation |
-| Public Subnets | ALB and NAT Gateway |
-| Private Subnets | Application workloads |
-| Internet Gateway | Public internet connectivity |
-| NAT Gateway | Outbound internet access |
-| Application Load Balancer | Public entry point |
-| Security Groups | Traffic filtering and access control |
+| VPC | Isolated network |
+| Internet Gateway | Public internet access |
+| Public Subnets | Host ALB and NAT Gateways |
+| Private Subnets | Host EC2 instances |
+| NAT Gateways | Secure outbound internet access |
+| Security Groups | Traffic filtering |
+
+### Security Model
+
+- EC2 instances are deployed in private subnets.
+- No direct internet access to application servers.
+- All external traffic passes through the Application Load Balancer.
+- Outbound traffic is routed through NAT Gateways.
 
 ---
 
-## Application Stack
+# Application Load Balancer
 
-The application is deployed as a multi-container environment using Docker Compose.
+The Application Load Balancer serves as the single entry point for all incoming traffic.
 
-### Services
+Responsibilities:
+
+- Distribute traffic across instances
+- Perform health checks
+- Improve availability
+- Route requests to healthy targets
+
+### Configuration
+
+| Setting | Value |
+|----------|----------|
+| Type | Application Load Balancer |
+| Listener | HTTP : 80 |
+| Routing | Forward to Target Group |
+| Health Checks | Enabled |
+
+### Resource Map
+
+![ALB Resource Map](Screens/alb-resourcemap.jpg)
+
+---
+
+# Compute Layer
+
+The application runs on Amazon EC2 instances deployed across two Availability Zones.
+
+### Instance Configuration
+
+| Setting | Value |
+|----------|----------|
+| Instance Type | c7i-flex.large |
+| Availability Zones | us-east-1a, us-east-1b |
+| Deployment Model | Private Subnets |
+| Health Status | Running |
+
+Each instance hosts the complete Dockerized application stack.
+
+### EC2 Instances
+
+![EC2 Instances](Screens/instances.jpg)
+
+---
+
+# Auto Scaling
+
+An Auto Scaling Group is configured to maintain service availability automatically.
+
+### Configuration
+
+| Setting | Value |
+|----------|----------|
+| Name | project-autoscale |
+| Desired Capacity | 2 |
+| Minimum Capacity | 2 |
+| Maximum Capacity | 3 |
+
+Benefits:
+
+- Automatic recovery
+- High availability
+- Self-healing infrastructure
+- Controlled scaling
+
+### Auto Scaling Dashboard
+
+![Auto Scaling Group](Screens/project-autoscale.jpg)
+
+---
+
+# Containerized Application Stack
+
+The platform is deployed using Docker Compose.
+
+Each EC2 instance runs the same set of containers.
+
+## Services
 
 | Service | Purpose |
 |----------|----------|
-| Nginx | Reverse proxy |
-| Application | Main vulnerability scanning platform |
-| PostgreSQL | Persistent database |
-| OWASP ZAP | Dynamic application security testing |
-| OWASP Dependency Check | Dependency vulnerability analysis |
-| Nikto | Web server vulnerability scanning |
-
-### Docker Compose Features
-
-What I implemented using Docker Compose:
-
-- Multi-container deployment
-- Health checks for critical services
-- Service dependency management
-- Persistent volumes
-- Dedicated internal network
-- Automatic restart policies
-- Environment-based configuration using `.env`
-- Centralized logs and reports
+| Nginx | Reverse Proxy |
+| Application | Main Platform |
+| PostgreSQL | Database |
+| OWASP ZAP | Dynamic Security Testing |
+| OWASP Dependency Check | Dependency Analysis |
+| Nikto | Web Server Security Scanning |
 
 ---
 
-## Networking
+## Docker Compose Features
 
-All containers communicate through a dedicated Docker bridge network.
+Implemented features include:
+
+- Multi-container deployment
+- Service dependency management
+- Health checks
+- Persistent volumes
+- Internal networking
+- Restart policies
+- Environment-based configuration
+- Centralized logging
+
+---
+
+# Internal Communication
+
+Containers communicate through a dedicated Docker network.
 
 ```yaml
 networks:
@@ -88,13 +211,12 @@ networks:
     driver: bridge
 ```
 
-This allowed services to communicate internally using container names instead of IP addresses.
-
-### Internal Communication
+Application flow:
 
 ```text
 Nginx
-  ↓
+  │
+  ▼
 Application
   ├── PostgreSQL
   ├── OWASP ZAP
@@ -102,44 +224,46 @@ Application
   └── Nikto
 ```
 
-External users never communicate directly with the database or security scanners.
+This allows secure communication between services without exposing them externally.
 
 ---
 
-## Reverse Proxy
+# Reverse Proxy Layer
 
-Nginx acts as the main entry point for application traffic.
+Nginx acts as the reverse proxy for the application.
 
-Requests follow the path:
+Responsibilities:
+
+- Receive incoming requests
+- Forward traffic to the backend
+- Centralize request handling
+- Improve application isolation
+
+Request flow:
 
 ```text
 User
-  ↓
-Application Load Balancer
-  ↓
+ ↓
+ALB
+ ↓
 Nginx
-  ↓
-Backend Application
+ ↓
+Application
 ```
-
-Using Nginx made it easier to:
-
-- Route traffic
-- Hide backend implementation details
-- Centralize incoming requests
-- Prepare for future HTTPS integration
 
 ---
 
-## Database
+# Database Layer
 
-PostgreSQL 15 was used to store:
+PostgreSQL 15 is used as the primary database.
 
-- Scan results
-- Application data
-- User-generated reports
+Responsibilities:
 
-Database persistence was handled through Docker volumes backed by EBS storage.
+- Store scan results
+- Store application data
+- Store generated reports metadata
+
+Database persistence is handled through Docker volumes.
 
 ### Persistent Volume
 
@@ -147,149 +271,128 @@ Database persistence was handled through Docker volumes backed by EBS storage.
 zap_db_data:
 ```
 
-This ensures data remains available even if containers are recreated.
+This ensures data remains available even after container recreation.
 
 ---
 
-## Security Testing
+# Security Testing
 
-Instead of relying on a single tool, I integrated multiple security testing solutions.
+Security testing is integrated directly into the platform.
 
-### OWASP ZAP
+Instead of relying on a single scanner, multiple security tools are used.
 
-Used for Dynamic Application Security Testing (DAST).
+---
+
+## OWASP ZAP
+
+OWASP ZAP provides Dynamic Application Security Testing (DAST).
 
 Capabilities:
 
-- Passive scanning
-- Active scanning
-- Spider crawling
-- Security header analysis
-- SQL Injection detection
-- Cross-Site Scripting (XSS) detection
+- Passive Scanning
+- Active Scanning
+- Spider Crawling
+- Security Header Analysis
+- SQL Injection Detection
+- XSS Detection
 
-The backend communicates directly with ZAP through Docker networking.
+Communication:
 
 ```text
-Application → ZAP Container
+Application → OWASP ZAP
 ```
 
 ---
 
-### OWASP Dependency Check
+## OWASP Dependency Check
 
-Used to identify vulnerable third-party libraries and dependencies.
-
-Capabilities:
-
-- CVE detection
-- Dependency risk assessment
-- Software Composition Analysis (SCA)
-- Vulnerability reporting
-
-Reports are generated and stored inside the reports directory.
-
----
-
-### Nikto
-
-Used for web server security assessments.
+Used for Software Composition Analysis.
 
 Capabilities:
 
-- Dangerous file detection
-- Server misconfiguration checks
-- Outdated software detection
-- Common web vulnerability identification
+- CVE Detection
+- Vulnerable Dependency Discovery
+- Dependency Risk Assessment
+- Security Reporting
+
+Reports are generated automatically.
 
 ---
 
-## Storage
+## Nikto
 
-Several Docker volumes were configured to preserve important data.
+Nikto is used to assess web server security.
+
+Capabilities:
+
+- Server Misconfiguration Detection
+- Dangerous File Discovery
+- Outdated Software Detection
+- Common Vulnerability Checks
+
+---
+
+# Storage
+
+Persistent storage is provided using Docker volumes backed by Amazon EBS.
 
 ### Volumes
 
 | Volume | Purpose |
 |----------|----------|
-| zap_db_data | PostgreSQL data |
-| zap_data | OWASP ZAP workspace |
-| depcheck_data | Dependency Check database |
+| zap_db_data | PostgreSQL Storage |
+| zap_data | OWASP ZAP Workspace |
+| depcheck_data | Dependency Check Database |
 
-### Mounted Directories
+Additional mounted directories store:
 
-Additional directories were used for:
-
-- Application logs
-- Scan reports
-- Uploaded files
-- Nginx logs
+- Application Logs
+- Scan Reports
+- Uploaded Files
+- Nginx Logs
 
 ---
 
-## Monitoring
+# Monitoring and Observability
 
-Amazon CloudWatch was used to monitor infrastructure and application health.
+Amazon CloudWatch is used to monitor the infrastructure and application environment.
 
-Metrics included:
+Collected metrics include:
 
-- EC2 CPU utilization
-- Memory utilization
-- Network traffic
-- System health
-- Application logs
+- CPU Utilization
+- Network Traffic
+- Instance Health
+- Container Logs
+- Resource Usage
 
-CloudWatch provided visibility into both infrastructure performance and application behavior.
-
----
-
-## Traffic Flow
-
-```text
-User
-  ↓
-Internet Gateway
-  ↓
-Application Load Balancer
-  ↓
-Nginx Reverse Proxy
-  ↓
-Backend Application
-  ├── PostgreSQL
-  ├── OWASP ZAP
-  ├── Dependency Check
-  └── Nikto
-```
-
-The Application Load Balancer acts as the only public-facing component.
-
-All backend services remain isolated inside private subnets.
+CloudWatch provides visibility into both infrastructure performance and application behavior.
 
 ---
 
-## What I Focused On
+# Security Practices Applied
 
-While building this deployment, I focused on:
+The deployment follows several cloud security best practices:
 
-- Keeping application workloads inside private subnets
-- Using Nginx as a reverse proxy behind the ALB
-- Containerizing all services with Docker
-- Managing the entire stack through Docker Compose
-- Adding health checks for critical services
-- Persisting database and scan data
-- Integrating multiple security testing tools
-- Monitoring infrastructure using CloudWatch
-- Restricting public exposure to only the load balancer
+- Private subnet isolation
+- Application Load Balancer as the only public entry point
+- NAT Gateway for outbound-only internet access
+- Security Group restrictions
+- Containerized workloads
+- Health checks for critical services
+- Persistent storage
+- Multi-AZ deployment
+- Auto Scaling Group integration
+- Continuous vulnerability scanning
 
 ---
 
-## Challenges
+# Challenges
 
-### Service Startup Dependencies
+## Service Dependencies
 
 Several services depended on PostgreSQL and OWASP ZAP being available before startup.
 
-I solved this using Docker Compose health checks and conditional dependencies.
+This was solved using Docker Compose health checks and conditional startup dependencies.
 
 Example:
 
@@ -299,35 +402,38 @@ depends_on:
     condition: service_healthy
 ```
 
-This ensured services started in the correct order.
+---
+
+## Resource Consumption
+
+OWASP ZAP requires significant memory during active scans.
+
+Resource allocation and scan configurations were optimized to ensure stable operation.
 
 ---
 
-### OWASP ZAP Resource Consumption
+## Multi-Service Coordination
 
-During active scans, OWASP ZAP consumed a significant amount of memory.
+Running multiple security tools together required careful planning for:
 
-I had to optimize scan settings and resource allocation to keep the platform stable while maintaining scanning capabilities.
+- Networking
+- Storage
+- Service Communication
+- Report Management
 
----
-
-### Managing Multiple Security Tools
-
-Running ZAP, Dependency Check, and Nikto together required careful planning for networking, storage, and report management.
-
-Docker Compose helped simplify service orchestration and maintenance.
+Docker Compose simplified orchestration and deployment.
 
 ---
 
-## Deployment
+# Deployment
 
-### Start Services
+### Start Environment
 
 ```bash
 docker compose up -d
 ```
 
-### Check Running Containers
+### Check Containers
 
 ```bash
 docker compose ps
@@ -339,7 +445,7 @@ docker compose ps
 docker compose logs -f
 ```
 
-### Stop Services
+### Stop Environment
 
 ```bash
 docker compose down
@@ -347,13 +453,11 @@ docker compose down
 
 ---
 
-## Why I Moved to Kubernetes
+# Why I Built a Kubernetes Version
 
-After successfully running the platform on EC2, I started noticing some limitations.
+While the EC2 implementation successfully met the project requirements, managing containers manually became more difficult as the platform evolved.
 
-Managing containers manually became harder as the project grew, scaling required additional infrastructure work, and service management wasn't as flexible as I wanted.
-
-To address these challenges, I rebuilt the platform using:
+To improve scalability, automation, observability, and infrastructure management, I redesigned the platform using:
 
 - Terraform
 - Amazon EKS
@@ -361,9 +465,11 @@ To address these challenges, I rebuilt the platform using:
 - EBS CSI Driver
 - CloudWatch Container Insights
 
-The Kubernetes implementation became the second version of the project and significantly improved automation, scalability, observability, and infrastructure management.
+This became the second implementation of the project.
 
-➡️ **Next Step:** [View Kubernetes Architecture](../tf/README.md)
+➡️ **Continue to Approach 2**
+
+[View Kubernetes Deployment](../tf/README.md)
 
 ---
 
