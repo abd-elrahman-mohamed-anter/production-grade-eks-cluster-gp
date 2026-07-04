@@ -473,4 +473,4 @@ This became the second implementation of the project.
 
 ---
 
-*Abdelrahman Mohamed — Graduation Project 2026*
+*Abdelrahman Mohamed & Mazen Elnahrawy — Graduation Project 2026*
